@@ -11,7 +11,7 @@ func Connect(peerhash string) {
 	log.Println("Connecting to", peerhash)
 }
 
-func Listen() {
+func Listen(shortHash bool) {
 	addresses, err := net.InterfaceAddrs()
 	for _, addr := range addresses {
 		log.Println("Found", addr.String())

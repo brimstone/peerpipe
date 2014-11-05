@@ -19,6 +19,6 @@ func main() {
 	if len(args) == 1 {
 		libpeerpipe.Connect(args[0])
 	} else {
-		libpeerpipe.Listen()
+		libpeerpipe.Listen(*shortHash)
 	}
 }
