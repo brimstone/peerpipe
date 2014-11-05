@@ -18,12 +18,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	peerHash := libpeerpipe.GenerateHash(*shortHash)
+	peerpipe := new(libpeerpipe.Peerpipe)
+	peerHash := peerpipe.GenerateHash(*shortHash)
 	log.Println("Peerhash:", peerHash)
 
 	if len(args) == 1 {
-		libpeerpipe.Connect(args[0])
+		peerpipe.Connect(args[0])
 	} else {
-		libpeerpipe.Listen()
+		log.Println("Already listening")
 	}
 }

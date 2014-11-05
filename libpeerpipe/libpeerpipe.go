@@ -16,6 +16,13 @@ import (
 var charMapping = []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
 	"A", "B", "C", "D", "E", "F"}
 
+type Peerpipe struct {
+	Port      int
+	Peerhash  string
+	ListenUDP *net.UDPConn
+	ListenTCP *net.TCPListener
+}
+
 // helper functions
 
 func IntToChar(input int) string {
@@ -92,11 +99,15 @@ func GetExternalIP() (net.IP, error) {
 
 // specific functions
 
-func Connect(peerhash string) {
+func (self *Peerpipe) Connect(peerhash string) {
 	log.Println("Connecting to", peerhash)
 }
 
-func GenerateHash(shortHash bool) string {
+func (self *Peerpipe) GenerateHash(shortHash bool) string {
+	if self.Peerhash != "" {
+		return self.Peerhash
+	}
+	self.Listen()
 	peerHash := ""
 
 	externalIP, err := GetExternalIP()
@@ -119,14 +130,15 @@ func GenerateHash(shortHash bool) string {
 		ip = ip.To4()
 		peerHash += MakeReadable(ip)
 	}
+	self.Peerhash = peerHash + IntToChar(self.Port)
 	return peerHash
 }
 
-func Listen() {
+func (self *Peerpipe) Listen() {
 	var err error
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	port := r.Intn(65535 - 1024)
-	_, err = net.Listen("tcp", ":"+strconv.Itoa(port))
+	self.Port = r.Intn(65535 - 1024)
+	_, err = net.Listen("tcp", ":"+strconv.Itoa(self.Port))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
