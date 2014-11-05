@@ -95,7 +95,7 @@ func Connect(peerhash string) {
 	log.Println("Connecting to", peerhash)
 }
 
-func Listen(shortHash bool) {
+func GenerateHash(shortHash bool) string {
 	peerHash := ""
 
 	externalIP, err := GetExternalIP()
@@ -120,9 +120,10 @@ func Listen(shortHash bool) {
 		log.Printf("Found %v\n", MakeReadable(ip))
 		peerHash += MakeReadable(ip)
 	}
+	return peerHash
+}
 
-	log.Println(peerHash)
-
+func Listen() {
 	_, err = net.Listen("tcp", ":6000")
 	if err != nil {
 		fmt.Println(err)

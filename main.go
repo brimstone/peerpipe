@@ -16,9 +16,11 @@ func main() {
 		fmt.Println("usage")
 		os.Exit(1)
 	}
+	
+	log.Println(libpeerpipe.GenerateHash(*shortHash))
 	if len(args) == 1 {
 		libpeerpipe.Connect(args[0])
 	} else {
-		libpeerpipe.Listen(*shortHash)
+		libpeerpipe.Listen()
 	}
 }
