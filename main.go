@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/brimstone/peerpipe/libpeerpipe"
+	"log"
 	"os"
 )
 
@@ -17,7 +18,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Println(libpeerpipe.GenerateHash(*shortHash))
+	peerHash := libpeerpipe.GenerateHash(*shortHash)
+	log.Println("Peerhash:", peerHash)
+
 	if len(args) == 1 {
 		libpeerpipe.Connect(args[0])
 	} else {

@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
 var charMapping = []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-	"A", "B", "C", "D", "E", "F", "G", "H", "J", "K", "M", "N", "P", "Q", "R", "S",
-	"T", "U", "V", "X", "Y", "Z"}
+	"A", "B", "C", "D", "E", "F"}
 
 // helper functions
 
@@ -44,7 +45,7 @@ func MakeReadable(input []byte) string {
 func Fetch(url string) (string, error) {
 	var err error
 	client := &http.Client{
-		Timeout: time.Second * 1,
+		Timeout: time.Second * 5,
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -101,10 +102,9 @@ func GenerateHash(shortHash bool) string {
 	externalIP, err := GetExternalIP()
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+	} else {
+		peerHash = MakeReadable(externalIP.To4())
 	}
-	log.Println("External", MakeReadable(externalIP.To4()))
-	peerHash = MakeReadable(externalIP.To4())
 
 	addresses, err := net.InterfaceAddrs()
 	for _, addr := range addresses {
@@ -117,14 +117,16 @@ func GenerateHash(shortHash bool) string {
 		}
 		// Convert our IP to a hash
 		ip = ip.To4()
-		log.Printf("Found %v\n", MakeReadable(ip))
 		peerHash += MakeReadable(ip)
 	}
 	return peerHash
 }
 
 func Listen() {
-	_, err = net.Listen("tcp", ":6000")
+	var err error
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	port := r.Intn(65535 - 1024)
+	_, err = net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
