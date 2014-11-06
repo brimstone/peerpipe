@@ -19,7 +19,11 @@ func main() {
 	}
 
 	// [todo] - pass shorthash in via a config map
-	peerpipe := libpeerpipe.New()
+	peerpipe, err := libpeerpipe.New()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	log.Println("Peerhash:", peerpipe.GetHash())
 
 	if len(args) == 1 {

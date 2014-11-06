@@ -2,11 +2,9 @@ package libpeerpipe
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/rand"
 	"net"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -15,16 +13,16 @@ import (
 
 type Peerpipe struct {
 	Port      int
-	peerhash  string
+	peerHash  string
 	ListenUDP *net.UDPConn
 	ListenTCP *net.TCPListener
 }
 
 func New() (*Peerpipe, error) {
-	peerpipe = new(Peerpipe)
+	peerpipe := new(Peerpipe)
 	peerpipe.listen()
-	peerpipe.generateHash()
-	return peerpipe
+	peerpipe.generateHash(false)
+	return peerpipe, nil
 }
 
 func (self *Peerpipe) Connect(peerhash string) {
