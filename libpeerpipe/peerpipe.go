@@ -15,20 +15,23 @@ import (
 
 type Peerpipe struct {
 	Port      int
-	Peerhash  string
+	peerhash  string
 	ListenUDP *net.UDPConn
 	ListenTCP *net.TCPListener
+}
+
+func New() (*Peerpipe,error){
+	peerpipe = new(Peerpipe)
+	peerpipe.listen()
+	peerpipe.generateHash()
+	return peerpipe
 }
 
 func (self *Peerpipe) Connect(peerhash string) {
 	log.Println("Connecting to", peerhash)
 }
 
-func (self *Peerpipe) GenerateHash(shortHash bool) string {
-	if self.Peerhash != "" {
-		return self.Peerhash
-	}
-	self.Listen()
+func (self *Peerpipe) generateHash(shortHash bool) string {
 	peerHash := ""
 
 	externalIP, err := GetExternalIP()
@@ -51,11 +54,15 @@ func (self *Peerpipe) GenerateHash(shortHash bool) string {
 		ip = ip.To4()
 		peerHash += MakeReadable(ip)
 	}
-	self.Peerhash = peerHash + IntToChar(self.Port)
+	self.peerHash = peerHash + IntToChar(self.Port)
 	return peerHash
 }
 
-func (self *Peerpipe) Listen() {
+func (self *Peerpipe) GetHash() string {
+	return self.peerHash
+}
+
+func (self *Peerpipe) listen() {
 	var err error
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	self.Port = r.Intn(65535 - 1024)

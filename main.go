@@ -18,9 +18,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	peerpipe := new(libpeerpipe.Peerpipe)
-	peerHash := peerpipe.GenerateHash(*shortHash)
-	log.Println("Peerhash:", peerHash)
+// [todo] - pass shorthash in via a config map
+	peerpipe := libpeerpipe.New()
+	log.Println("Peerhash:", peerpipe.GetHash())
 
 	if len(args) == 1 {
 		peerpipe.Connect(args[0])
