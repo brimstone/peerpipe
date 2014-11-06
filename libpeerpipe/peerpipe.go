@@ -20,7 +20,7 @@ type Peerpipe struct {
 	ListenTCP *net.TCPListener
 }
 
-func New() (*Peerpipe,error){
+func New() (*Peerpipe, error) {
 	peerpipe = new(Peerpipe)
 	peerpipe.listen()
 	peerpipe.generateHash()
