@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	"strconv"
+	//"strconv"
 	"strings"
 	"time"
 )
@@ -17,18 +17,21 @@ type Peerpipe struct {
 	ListenUDP *net.UDPConn
 	ListenTCP *net.TCPListener
 	addresses string
+	done      chan bool
 }
 
 func New() (*Peerpipe, error) {
 	peerpipe := new(Peerpipe)
+	peerpipe.done = make(chan bool)
 	peerpipe.listen()
 	peerpipe.generateHash(false)
 	log.Println("Ready for connections on port", peerpipe.Port, "at", peerpipe.addresses)
 	return peerpipe, nil
 }
 
-func (self *Peerpipe) Connect(peerhash string) {
-	log.Println("Connecting to", peerhash)
+func (self *Peerpipe) Connect(peerHash string) {
+	log.Println("Connecting to", peerHash)
+	self.decodeHash(peerHash)
 }
 
 func (self *Peerpipe) generateHash(shortHash bool) string {
@@ -67,9 +70,45 @@ func (self *Peerpipe) listen() {
 	var err error
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	self.Port = r.Intn(65535-1024) + 1024
-	_, err = net.Listen("tcp", ":"+strconv.Itoa(self.Port))
+	addr := net.TCPAddr{
+		Port: self.Port,
+		IP:   net.ParseIP("0.0.0.0"),
+	}
+	self.ListenTCP, err = net.ListenTCP("tcp", &addr)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	go self.accept()
+}
+
+func (self *Peerpipe) accept() {
+	log.Println("Listening now.")
+	defer self.ListenTCP.Close()
+	client, err := self.ListenTCP.Accept()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	client.Write([]byte("hi\n"))
+	self.done <- true
+}
+
+func (self *Peerpipe) Wait() {
+	<-self.done
+}
+
+func (self *Peerpipe) decodeHash(peerHash string) {
+	// [todo] - figure out how to determine if the hash is "short"
+	// setup our string as a rune slice
+	var addresses []string
+	var address string
+	sliceHash := strings.Split(peerHash, "")
+	for len(sliceHash) > 8 {
+		sliceHash, address = RemoveOneAddress(sliceHash, 4)
+		addresses = append(addresses, address)
+	}
+	port := CharToInt(strings.Join(sliceHash, ""))
+	log.Println(addresses, port)
 }

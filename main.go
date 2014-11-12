@@ -31,4 +31,5 @@ func main() {
 	} else {
 		log.Println("Already listening")
 	}
+	peerpipe.Wait()
 }

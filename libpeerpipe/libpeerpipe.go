@@ -3,8 +3,10 @@ package libpeerpipe
 import (
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -30,12 +32,42 @@ func IntToChar(input int) string {
 	return currentByte
 }
 
+func index(haystack []string, needle string) int {
+	for i, straw := range haystack {
+		if straw == needle {
+			return i
+		}
+	}
+	return -1
+}
+
+func CharToInt(input string) int {
+	inputBytes := strings.Split(input, "")
+	value := 0
+	for i, r := range inputBytes {
+		value += index(charMapping, r) * int(math.Pow(float64(len(charMapping)), float64(len(input)-1-i)))
+	}
+	return value
+}
+
 func MakeReadable(input []byte) string {
 	readable := ""
 	for i := 0; i < len(input); i++ {
 		readable += IntToChar(int(input[i]))
 	}
 	return readable
+}
+
+func RemoveOneAddress(input []string, length int) ([]string, string) {
+	// pop off 4 octets worth
+	address := ""
+	for i := 0; i < length-1; i++ {
+		address += strconv.Itoa(CharToInt(strings.Join(input[0:2], ""))) + "."
+		input = input[2:]
+	}
+	address += strconv.Itoa(CharToInt(strings.Join(input[0:2], "")))
+	input = input[2:]
+	return input, address
 }
 
 func Fetch(url string) (string, error) {
