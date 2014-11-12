@@ -5,5 +5,12 @@ import (
 )
 
 func Test(t *testing.T) {
-	t.Errorf("Failed")
+	lpeerpipe, err := New()
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	rpeerpipe, err := New()
+
+	rpeerpipe.Connect(lpeerpipe.GetHash())
 }
