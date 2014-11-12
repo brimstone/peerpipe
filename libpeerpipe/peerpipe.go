@@ -66,7 +66,7 @@ func (self *Peerpipe) GetHash() string {
 func (self *Peerpipe) listen() {
 	var err error
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	self.Port = r.Intn(65535 - 1024) + 1024
+	self.Port = r.Intn(65535-1024) + 1024
 	_, err = net.Listen("tcp", ":"+strconv.Itoa(self.Port))
 	if err != nil {
 		fmt.Println(err)
