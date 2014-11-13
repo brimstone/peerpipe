@@ -45,7 +45,7 @@ func (self *Peerpipe) Connect(peerHash string) {
 	if client == nil {
 		os.Exit(1)
 	}
-	defer self.ListenTCP.Close()
+	defer client.Close()
 	client.Write([]byte("hi\n"))
 }
 
