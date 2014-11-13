@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	//"strconv"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -31,7 +31,22 @@ func New() (*Peerpipe, error) {
 
 func (self *Peerpipe) Connect(peerHash string) {
 	log.Println("Connecting to", peerHash)
-	self.decodeHash(peerHash)
+	addresses, port := self.decodeHash(peerHash)
+	var client net.Conn
+	var err error
+	for _, address := range addresses {
+		log.Println("via", address+":"+strconv.Itoa(port))
+		client, err = net.DialTimeout("tcp", address+":"+strconv.Itoa(port), time.Second*2)
+		if err == nil {
+			break
+		}
+		fmt.Println(err)
+	}
+	if client == nil {
+		os.Exit(1)
+	}
+	defer self.ListenTCP.Close()
+	client.Write([]byte("hi\n"))
 }
 
 func (self *Peerpipe) generateHash(shortHash bool) string {
@@ -99,7 +114,7 @@ func (self *Peerpipe) Wait() {
 	<-self.done
 }
 
-func (self *Peerpipe) decodeHash(peerHash string) {
+func (self *Peerpipe) decodeHash(peerHash string) ([]string, int) {
 	// [todo] - figure out how to determine if the hash is "short"
 	// setup our string as a rune slice
 	var addresses []string
@@ -109,6 +124,5 @@ func (self *Peerpipe) decodeHash(peerHash string) {
 		sliceHash, address = RemoveOneAddress(sliceHash, 4)
 		addresses = append(addresses, address)
 	}
-	port := CharToInt(strings.Join(sliceHash, ""))
-	log.Println(addresses, port)
+	return addresses, CharToInt(strings.Join(sliceHash, ""))
 }
