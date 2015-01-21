@@ -26,10 +26,19 @@ func main() {
 	}
 	log.Println("Peerhash:", peerpipe.GetHash())
 
+	// fi, _ := os.Stdin.Stat() // get the FileInfo struct describing the standard input.
+	// if fi.Mode() & os.ModeCharDevice {
+	// pipe
+	// else
+	// interactive
+
 	if len(args) == 1 {
-		peerpipe.Connect(args[0])
+		// We're the client
+		go peerpipe.Connect(args[0])
 	} else {
+		// We're the server
 		log.Println("Already listening")
 	}
 	peerpipe.Wait()
+	log.Println("Done waiting.")
 }

@@ -1,7 +1,9 @@
 package libpeerpipe
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net"
@@ -46,7 +48,10 @@ func (self *Peerpipe) Connect(peerHash string) {
 		os.Exit(1)
 	}
 	defer client.Close()
-	client.Write([]byte("hi\n"))
+	self.readwrite(os.Stdin, client)
+	client.Close()
+	log.Println("Done with Connect")
+	self.done <- true
 }
 
 func (self *Peerpipe) generateHash(shortHash bool) string {
@@ -101,16 +106,19 @@ func (self *Peerpipe) listen() {
 func (self *Peerpipe) accept() {
 	log.Println("Listening now.")
 	defer self.ListenTCP.Close()
+	//var err error
 	client, err := self.ListenTCP.Accept()
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	client.Write([]byte("hi\n"))
+	self.readwrite(client, os.Stdout)
+	log.Println("Done with accept")
 	self.done <- true
 }
 
 func (self *Peerpipe) Wait() {
+	fmt.Println("Waiting for session to end")
 	<-self.done
 }
 
@@ -125,4 +133,30 @@ func (self *Peerpipe) decodeHash(peerHash string) ([]string, int) {
 		addresses = append(addresses, address)
 	}
 	return addresses, CharToInt(strings.Join(sliceHash, ""))
+}
+
+func (self *Peerpipe) readwrite(reader io.Reader, writer io.Writer) {
+	nBytes, nChunks := int64(0), int64(0)
+	buf := make([]byte, 0, 1024)
+	r := bufio.NewReader(reader)
+	for {
+		n, err := r.Read(buf[:cap(buf)])
+		buf = buf[:n]
+		if n == 0 {
+			if err == nil {
+				continue
+			}
+			if err == io.EOF {
+				break
+			}
+			log.Fatal(err)
+		}
+		writer.Write(buf)
+		nChunks++
+		nBytes += int64(len(buf))
+		// process buf
+		if err != nil && err != io.EOF {
+			log.Fatal(err)
+		}
+	}
 }
